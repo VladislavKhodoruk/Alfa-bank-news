@@ -1,32 +1,35 @@
-import {
-  Button,
-  Image,
-  SafeAreaView,
-  StatusBar,
-  StyleProp,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-  ViewStyle,
-} from "react-native";
+import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { VARS } from "../styles/vars/variables";
-import { convertDate } from "../entities/helpers";
-import { createRef, useEffect, useRef, useState } from "react";
-import React from "react";
+import { convertDate, setCache } from "../entities/helpers";
+import React, { useEffect } from "react";
+import WebView from "react-native-webview";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "../redux/state";
+import { changeFavourite } from "../redux/NewsSlice";
+import { NewsItem } from "../entities/interfaces";
 
 interface IProperties {
-  title: string;
-  description: string;
-  date: string;
+  newsItem: NewsItem;
   fullScreenMode?: boolean | undefined;
-  isFavourite: boolean;
-  style?: StyleProp<ViewStyle> | undefined;
 }
 
 export default function Card(props: IProperties) {
+  const dispatch = useDispatch<AppDispatch>();
+  const $newsState = useSelector((state: RootState) => state.newsList);
+
+  async function onLabelPress() {
+    dispatch(changeFavourite({ news: props.newsItem }));
+  }
+
+  useEffect(() => {
+    setCache(
+      "favouriteNews",
+      $newsState.favouriteNews ? $newsState.favouriteNews : []
+    );
+  }, [$newsState.favouriteNews]);
+
   return (
-    <View style={[styles.container, props.style]}>
+    <View style={styles.container}>
       <View style={styles.cardContainer}>
         <View
           style={[
@@ -39,31 +42,90 @@ export default function Card(props: IProperties) {
             ellipsizeMode="tail"
             style={VARS.FONTS.primaryFont}
           >
-            {props.title}
+            {props.newsItem.title}
           </Text>
         </View>
-        <View style={[styles.descriptionContainer]}>
-          <Text
-            numberOfLines={props.fullScreenMode ? undefined : 5}
-            ellipsizeMode="tail"
-            style={[styles.description, VARS.FONTS.defaultFont]}
+        {props.fullScreenMode ? (
+          <View
+            style={[
+              styles.descriptionContainerFullscreen,
+              styles.descriptionContainer,
+            ]}
           >
-            {props.description}
+            <WebView
+              style={{ opacity: 0.99 }}
+              source={{
+                html: `
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <style type="text/css">
+                    body {
+                        margin: 0;
+                    }
+
+                    p {
+                        font-family: Roboto-Regular, sans-serif;
+                        color: ${VARS.COLORS.grayDark};
+                        font-size: 14px;
+                    }
+                </style>
+            
+                <body>
+                  ${props.newsItem.description}
+                </body>
+    `,
+              }}
+            />
+          </View>
+        ) : (
+          <View style={[styles.descriptionContainer]}>
+            <WebView
+              style={{ opacity: 0.99 }}
+              showsVerticalScrollIndicator={false}
+              source={{
+                html: `
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <style type="text/css">
+                    body {
+                        margin: 0;
+                    }
+
+                    p {
+                        font-family: Roboto-Regular, sans-serif;
+                        color: ${VARS.COLORS.grayDark};
+                        font-size: 14px;
+                        margin: 0;
+                    }
+                </style>
+            
+                <body>
+                  ${props.newsItem.description}
+                </body>
+            `,
+              }}
+            />
+          </View>
+        )}
+
+        <View style={styles.dateLabelContainer}>
+          <Text style={[VARS.FONTS.lightFont, styles.dateLabel]}>
+            {convertDate(props.newsItem.date)}
           </Text>
-        </View>
-        <View style={styles.dateLabel}>
-          <Text style={VARS.FONTS.lightFont}>{convertDate(props.date)}</Text>
         </View>
         <View style={styles.imageContainer}>
-          <TouchableOpacity>
-            <Image
-              style={styles.image}
-              source={
-                props.isFavourite
-                  ? require("../../assets/star-filled.png")
-                  : require("../../assets/star.png")
-              }
-            />
+          <TouchableOpacity onPress={onLabelPress}>
+            {$newsState.favouriteNews.find(
+              (item) => item.id === props.newsItem.id
+            ) ? (
+              <Image
+                style={styles.image}
+                source={require("../../assets/star-filled.png")}
+              />
+            ) : (
+              <Image
+                style={styles.image}
+                source={require("../../assets/star.png")}
+              />
+            )}
           </TouchableOpacity>
         </View>
       </View>
@@ -73,13 +135,15 @@ export default function Card(props: IProperties) {
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: VARS.OFFSETS.quarter,
     flex: 1,
+    paddingHorizontal: VARS.OFFSETS.half,
+    paddingVertical: VARS.OFFSETS.half,
   },
   cardContainer: {
+    flex: 1,
     borderRadius: VARS.BORDERS.borderRadiusDefault,
     paddingVertical: VARS.OFFSETS.default,
-    paddingHorizontal: VARS.OFFSETS.double,
+    paddingHorizontal: VARS.OFFSETS.default,
     backgroundColor: "white",
     justifyContent: "space-between",
     flexDirection: "column",
@@ -97,14 +161,18 @@ const styles = StyleSheet.create({
   },
   descriptionContainer: {
     marginBottom: VARS.OFFSETS.default,
-    overflow: "hidden",
+    height: 83,
   },
-  description: {
-    textAlign: "left",
-    justifyContent: "flex-end",
+  descriptionContainerFullscreen: {
+    flex: 1,
+    height: "100%",
+    width: "100%",
+  },
+  dateLabelContainer: {
+    alignItems: "flex-end",
   },
   dateLabel: {
-    alignItems: "flex-end",
+    textTransform: "capitalize",
   },
   imageContainer: {
     position: "absolute",

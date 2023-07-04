@@ -1,7 +1,9 @@
 import React, { useState } from "react";
 import * as Font from "expo-font";
 import AppLoading from "expo-app-loading";
-import { Navigation } from "./Navigation";
+import { Provider } from "react-redux";
+import store from "./src/redux/state";
+import { Navigation } from "./src/navigation/Navigation";
 
 async function loadAppAplication() {
   await Font.loadAsync({
@@ -15,7 +17,11 @@ export default function App() {
   const [isReady, setIsReady] = useState(false);
 
   if (isReady) {
-    return <Navigation />;
+    return (
+      <Provider store={store}>
+        <Navigation />
+      </Provider>
+    );
   }
 
   return (
