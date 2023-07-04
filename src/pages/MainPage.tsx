@@ -1,93 +1,68 @@
 import {
   FlatList,
-  SafeAreaView,
   StatusBar,
   StyleSheet,
   TouchableOpacity,
   View,
   Text,
   TouchableHighlight,
+  ActivityIndicator,
 } from "react-native";
 import Card from "../components/Card";
 import { VARS } from "../styles/vars/variables";
-import { useState } from "react";
-
-const apiItems = [
-  {
-    title: "Альфа-Банк автоматизировал работу МФО c участниками закупок",
-    description:
-      "Альфа-Банк первым в России автоматизировал работу микрофинансовых организаций (МФО) c участниками закупок....Альфа-Банк первым в России автоматизировал работу микрофинансовых организаций (МФО) c участниками закупок....Альфа-Банк первым в России автоматизировал работу микрофинансовых организаций (МФО) c участниками закупок....Альфа-Банк первым в России автоматизировал работу микрофинансовых организаций (МФО) c участниками закупок....Альфа-Банк первым в России автоматизировал работу микрофинансовых организаций (МФО) c участниками закупок....Альфа-Банк первым в России автоматизировал работу микрофинансовых организаций (МФО) c участниками закупок....",
-    id: 1,
-    date: "Tue, 13 Jul 2021",
-  },
-  {
-    title: "Альфа-Банк автоматизировал",
-    description:
-      "Альфа-Банк первым в России автоматизировал работу микрофинансовых организаций (МФО) c участниками закупок....Альфа-Банк первым в России автоматизировал работу микрофинансовых организаций (МФО) c участниками закупок....Альфа-Банк первым в России автоматизировал работу микрофинансовых организаций (МФО) c участниками закупок....Альфа-Банк первым в России автоматизировал работу микрофинансовых организаций (МФО) c участниками закупок....Альфа-Банк первым в России автоматизировал работу микрофинансовых организаций (МФО) c участниками закупок....Альфа-Банк первым в России автоматизировал работу микрофинансовых организаций (МФО) c участниками закупок....",
-    id: 2,
-    date: "Tue, 13 Jul 2021",
-  },
-  {
-    title: "Альфа-Банк автоматизировал работу МФО c участниками закупок",
-    description:
-      "Микрофинансовых организаций (МФО) c участниками закупок....Альфа-Банк первым в России авто",
-    id: 3,
-    date: "Tue, 13 Jul 2021",
-  },
-  {
-    title: "Альфа-Банк автоматизировал работу МФО c участниками закупок",
-    description:
-      "Микрофинансовых организаций (МФО) c участниками закупок....Альфа-Банк первым в России авто",
-    id: 4,
-    date: "Tue, 13 Jul 2021",
-  },
-];
-
-const favItems = [
-  {
-    title: "Альфа-Банк автоматизировал работу МФО c участниками закупок",
-    description:
-      "Альфа-Банк первым в России автоматизировал работу микрофинансовых организаций (МФО) c участниками закупок....Альфа-Банк первым в России автоматизировал работу микрофинансовых организаций (МФО) c участниками закупок....Альфа-Банк первым в России автоматизировал работу микрофинансовых организаций (МФО) c участниками закупок....Альфа-Банк первым в России автоматизировал работу микрофинансовых организаций (МФО) c участниками закупок....Альфа-Банк первым в России автоматизировал работу микрофинансовых организаций (МФО) c участниками закупок....Альфа-Банк первым в России автоматизировал работу микрофинансовых организаций (МФО) c участниками закупок....",
-    id: 1,
-    date: "Tue, 13 Jul 2021",
-  },
-  {
-    title: "Альфа-Банк автоматизировал",
-    description:
-      "Альфа-Банк первым в России автоматизировал работу микрофинансовых организаций (МФО) c участниками закупок....Альфа-Банк первым в России автоматизировал работу микрофинансовых организаций (МФО) c участниками закупок....Альфа-Банк первым в России автоматизировал работу микрофинансовых организаций (МФО) c участниками закупок....Альфа-Банк первым в России автоматизировал работу микрофинансовых организаций (МФО) c участниками закупок....Альфа-Банк первым в России автоматизировал работу микрофинансовых организаций (МФО) c участниками закупок....Альфа-Банк первым в России автоматизировал работу микрофинансовых организаций (МФО) c участниками закупок....",
-    id: 2,
-    date: "Tue, 13 Jul 2021",
-  },
-];
-
-export default function MainPage({ navigation }: { navigation: any }) {
+import { useEffect, useState } from "react";
+import { AppDispatch, RootState } from "../redux/state";
+import { useDispatch, useSelector } from "react-redux";
+import { LabelText, LoadingStatus, PageNames } from "../entities/enums";
+import { changeFavourite, fetchNews } from "../redux/NewsSlice";
+import { useAppNavigation } from "../navigation/helpers";
+import { NewsItem } from "../entities/interfaces";
+import { getFromCache } from "../entities/helpers";
+export default function MainPage() {
   const [onMain, setOnMain] = useState<boolean>(true);
-  const [currentItems, setCurrentItems] = useState(apiItems);
-  const [favouriteItems, setFavouriteItems] = useState<any>(favItems);
 
-  function onMainPressed() {
-    setOnMain(true);
+  const dispatch = useDispatch<AppDispatch>();
+  const $newsState = useSelector((state: RootState) => state.newsList);
+  const navigation = useAppNavigation();
+
+  async function setFavouriteNewsInState() {
+    const favouriteNewsFromCache = await getFromCache<NewsItem[]>(
+      "favouriteNews"
+    );
+
+    for (let item of favouriteNewsFromCache) {
+      dispatch(changeFavourite({ news: item }));
+    }
   }
 
-  function onFavouritePressed() {
-    setOnMain(false);
+  useEffect(() => {
+    dispatch(fetchNews());
+    setFavouriteNewsInState();
+  }, []);
+
+  function onPanelPress(onMain: boolean) {
+    setOnMain(onMain);
+  }
+
+  function onRefreshPress() {
+    dispatch(fetchNews());
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <View style={styles.navigationPanel}>
         <TouchableHighlight
           underlayColor="white"
-          onPress={onMainPressed}
+          onPress={() => onPanelPress(true)}
           style={[styles.navigationButton, onMain ? styles.buttonActive : null]}
         >
           <Text style={[VARS.FONTS.navFont, onMain ? styles.textActive : null]}>
-            Главная
+            {LabelText.AllNews}
           </Text>
         </TouchableHighlight>
         <TouchableHighlight
           underlayColor="white"
-          onPress={onFavouritePressed}
+          onPress={() => onPanelPress(false)}
           style={[
             styles.navigationButton,
             !onMain ? styles.buttonActive : null,
@@ -96,46 +71,106 @@ export default function MainPage({ navigation }: { navigation: any }) {
           <Text
             style={[VARS.FONTS.navFont, !onMain ? styles.textActive : null]}
           >
-            Избранное
+            {LabelText.FavouriteNews}
           </Text>
         </TouchableHighlight>
       </View>
-      <FlatList
-        style={styles.listContainer}
-        keyExtractor={(item) => item.id.toString()}
-        data={currentItems}
-        ItemSeparatorComponent={() => (
-          <View style={{ height: VARS.OFFSETS.default }} />
-        )}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            activeOpacity={1}
-            onPress={() => navigation.navigate("NewsPage")}
-          >
-            <Card
-              title={item.title}
-              description={item.description}
-              date={item.date}
-              isFavourite={favouriteItems.find(
-                (curItem: any) => curItem.id === item.id
-              )}
-            />
-          </TouchableOpacity>
-        )}
-      />
+
+      {$newsState.loadingStatus === LoadingStatus.Loading && (
+        <ActivityIndicator
+          size="large"
+          style={styles.loaderContainer}
+          color={VARS.COLORS.red}
+        />
+      )}
+
+      {$newsState.loadingStatus === LoadingStatus.Error &&
+        (onMain ? (
+          <View style={styles.warningContainer}>
+            <Text style={[VARS.FONTS.defaultFont, styles.warningText]}>
+              {LabelText.Error}
+            </Text>
+
+            <TouchableOpacity onPress={onRefreshPress}>
+              <View style={styles.errorButtonContainer}>
+                <Text style={[VARS.FONTS.defaultFont, styles.errorButtonText]}>
+                  {LabelText.Refresh}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <FlatList
+            ListEmptyComponent={
+              <View style={styles.warningContainer}>
+                <Text style={[VARS.FONTS.defaultFont, styles.warningText]}>
+                  {LabelText.EmptyView}
+                </Text>
+              </View>
+            }
+            style={styles.listContainer}
+            keyExtractor={(item) => item.id}
+            data={$newsState.favouriteNews}
+            ItemSeparatorComponent={() => (
+              <View style={{ height: VARS.OFFSETS.default }} />
+            )}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                activeOpacity={1}
+                onPress={() =>
+                  navigation.navigate(PageNames.NewsPage, {
+                    newsItem: item,
+                  })
+                }
+              >
+                <Card newsItem={item} />
+              </TouchableOpacity>
+            )}
+          />
+        ))}
+
+      {$newsState.loadingStatus === LoadingStatus.Loaded && (
+        <FlatList
+          ListEmptyComponent={
+            <View style={styles.warningContainer}>
+              <Text style={[VARS.FONTS.defaultFont, styles.warningText]}>
+                {LabelText.EmptyView}
+              </Text>
+            </View>
+          }
+          style={styles.listContainer}
+          keyExtractor={(item) => item.id}
+          data={onMain ? $newsState.news : $newsState.favouriteNews}
+          ItemSeparatorComponent={() => (
+            <View style={{ height: VARS.OFFSETS.default }} />
+          )}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              activeOpacity={1}
+              onPress={() =>
+                navigation.navigate(PageNames.NewsPage, {
+                  newsItem: item,
+                })
+              }
+            >
+              <Card newsItem={item} />
+            </TouchableOpacity>
+          )}
+        />
+      )}
       <StatusBar />
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     backgroundColor: VARS.COLORS.grayLight,
+    paddingBottom: VARS.OFFSETS.default,
     flex: 1,
   },
   navigationPanel: {
     flexDirection: "row",
-    position: "absolute",
     paddingBottom: VARS.OFFSETS.quarter,
     zIndex: 1,
   },
@@ -157,6 +192,32 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     paddingHorizontal: VARS.OFFSETS.default,
-    paddingTop: 40,
+    paddingTop: VARS.OFFSETS.default,
+  },
+  loaderContainer: {
+    flex: 1,
+    justifyContent: "center",
+    flexDirection: "row",
+  },
+  warningContainer: {
+    height: "100%",
+    justifyContent: "center",
+    gap: 20,
+    alignItems: "center",
+  },
+  warningText: {
+    fontSize: 18,
+  },
+  errorButtonContainer: {
+    backgroundColor: "white",
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    borderRadius: 5,
+    shadowColor: VARS.COLORS.bluePrimary,
+    elevation: 3,
+  },
+  errorButtonText: {
+    fontSize: 16,
+    color: VARS.COLORS.blueLight,
   },
 });
