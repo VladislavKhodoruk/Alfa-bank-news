@@ -23,3 +23,4 @@ web-build/
 !.vscode/launch.json
 !.vscode/extensions.json
 .history/*
+android/
