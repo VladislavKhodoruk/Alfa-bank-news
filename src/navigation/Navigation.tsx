@@ -14,7 +14,7 @@ export const Navigation = () => {
     <NavigationContainer>
       <Stack.Navigator
         screenOptions={{
-          headerBackImageSource: require("../../assets/arrow.png"),
+          headerBackImageSource: require("../../assets/images/arrow.png"),
           headerTintColor: VARS.COLORS.red,
         }}
       >
@@ -29,7 +29,7 @@ export const Navigation = () => {
             },
             headerLeft: () => (
               <Image
-                source={require("../../assets/logo.png")}
+                source={require("../../assets/images/logo.png")}
                 style={styles.image}
               />
             ),

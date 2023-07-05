@@ -2,12 +2,6 @@ import { COLORS } from "./color-variables";
 import { StyleSheet } from "react-native";
 
 export const FONTS = StyleSheet.create({
-  topbarFont: {
-    fontSize: 16,
-    color: COLORS.red,
-    textAlign: "center",
-    fontFamily: "roboto-medium",
-  },
   primaryFont: {
     fontSize: 20,
     color: COLORS.bluePrimary,
