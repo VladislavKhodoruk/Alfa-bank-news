@@ -1,4 +1,11 @@
-import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { VARS } from "../styles/vars/variables";
 import { convertDate, setCache } from "../entities/helpers";
 import React, { useEffect } from "react";
@@ -52,57 +59,13 @@ export default function Card(props: IProperties) {
               styles.descriptionContainer,
             ]}
           >
-            <WebView
-              style={{ opacity: 0.99 }}
-              source={{
-                html: `
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <style type="text/css">
-                    body {
-                        margin: 0;
-                    }
-
-                    p {
-                        font-family: Roboto-Regular, sans-serif;
-                        color: ${VARS.COLORS.grayDark};
-                        font-size: 14px;
-                    }
-                </style>
-            
-                <body>
-                  ${props.newsItem.description}
-                </body>
-    `,
-              }}
-            />
+            <ScrollView>
+              <Text>{props.newsItem.description}</Text>
+            </ScrollView>
           </View>
         ) : (
           <View style={[styles.descriptionContainer]}>
-            <WebView
-              style={{ opacity: 0.99 }}
-              showsVerticalScrollIndicator={false}
-              source={{
-                html: `
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <style type="text/css">
-                    body {
-                        margin: 0;
-                    }
-
-                    p {
-                        font-family: Roboto-Regular, sans-serif;
-                        color: ${VARS.COLORS.grayDark};
-                        font-size: 14px;
-                        margin: 0;
-                    }
-                </style>
-            
-                <body>
-                  ${props.newsItem.description}
-                </body>
-            `,
-              }}
-            />
+            <Text numberOfLines={5}>{props.newsItem.description}</Text>
           </View>
         )}
 

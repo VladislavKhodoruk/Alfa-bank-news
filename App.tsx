@@ -4,6 +4,7 @@ import AppLoading from "expo-app-loading";
 import { Provider } from "react-redux";
 import store from "./src/redux/state";
 import { Navigation } from "./src/navigation/Navigation";
+import { StatusBar } from "expo-status-bar";
 
 async function loadAppAplication() {
   await Font.loadAsync({
@@ -20,6 +21,7 @@ export default function App() {
     return (
       <Provider store={store}>
         <Navigation />
+        <StatusBar style="auto" />
       </Provider>
     );
   }
