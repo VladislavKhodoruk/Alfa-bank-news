@@ -13,13 +13,6 @@ web-build/
 
 # macOS
 .DS_Store
-ios/
-ios/*
-ios/main.jsbundle
-ios/**/*
-android/
-android/*
-android/**/*
 
 # Temporary files created by Metro to check the health of the file watcher
 .metro-health-check*
@@ -30,14 +23,3 @@ android/**/*
 !.vscode/launch.json
 !.vscode/extensions.json
 .history/*
-
-.expo/*
-npm-debug.*
-package-lock.json
-
-build/
-
-.gradle
-local.properties
-*.iml
-*.hprof
