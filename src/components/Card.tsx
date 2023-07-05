@@ -81,12 +81,12 @@ export default function Card(props: IProperties) {
             ) ? (
               <Image
                 style={styles.image}
-                source={require("../../assets/star-filled.png")}
+                source={require("../../assets/images/star-filled.png")}
               />
             ) : (
               <Image
                 style={styles.image}
-                source={require("../../assets/star.png")}
+                source={require("../../assets/images/star.png")}
               />
             )}
           </TouchableOpacity>
